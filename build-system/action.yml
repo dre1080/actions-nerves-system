@@ -15,6 +15,10 @@ inputs:
     required: false
     type: boolean
     default: true
+  store-artifacts:
+    required: false
+    type: boolean
+    default: true
   ccache-initial-setup:
     required: false
     default: --max-size=1G
@@ -59,6 +63,7 @@ runs:
         cp ./CHANGELOG.md deploy/system/CHANGELOG.md
         mix nerves.artifact ${GITHUB_REPOSITORY#*/} --path deploy/system/artifacts
     - name: Store artifacts
+      if: inputs.store-artifacts == 'true'
       uses: actions/upload-artifact@v4
       with:
         path: deploy/system/artifacts

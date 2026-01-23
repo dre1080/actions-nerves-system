@@ -211,6 +211,10 @@ And you will need to set the following in the `./.actions/get-br-dependencies` a
           # Initial ccache settings to apply.
           # Default: '--max-size=1G'
           ccache-initial-setup: '--max-size=1G'
+          
+          # Upload and store artifacts in github actions
+          # Enabled by default
+          store-artifacts: true
 ```
 
 ### deploy-system
