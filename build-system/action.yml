@@ -22,6 +22,10 @@ inputs:
   ccache-initial-setup:
     required: false
     default: --max-size=1G
+  working-directory:
+    required: false
+    description: Working directory for the mix project
+    default: "."
 
 runs:
   using: composite
@@ -31,17 +35,22 @@ runs:
         otp-version: ${{ inputs.otp-version }}
         elixir-version: ${{ inputs.elixir-version }}
         nerves-bootstrap-version: ${{ inputs.nerves-bootstrap-version }}
+        working-directory: ${{ inputs.working-directory }}
     - uses: ./.actions/.internal/restore-nerves-downloads
     - uses: ./.actions/.internal/mix-deps-get
+      with:
+        cd: ${{ inputs.working-directory }}
     - name: Validate Hex package
       if: inputs.hex-validate == 'true'
       shell: bash
+      working-directory: ${{ inputs.working-directory }}
       run: mix hex.build
     - name: Restore ccache
       if: inputs.enable-ccache == 'true'
       uses: ./.actions/.internal/cache-buildroot-ccache
     - name: Build
       shell: bash
+      working-directory: ${{ inputs.working-directory }}
       run: |
         if [[ "${{ inputs.enable-ccache }}" = "true" ]]; then
           export BR2_CCACHE=y
@@ -51,13 +60,19 @@ runs:
         mix compile
     - name: Did I really build
       shell: bash
+      working-directory: ${{ inputs.working-directory }}
       run: |
         [ -d .nerves ] || (echo "VERSION file needs to be bumped or a config file needs to change to force a build"; exit 1)
     - name: Lint
       shell: bash
-      run: mix nerves.system.lint nerves_defconfig
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        # Ensure dev dependencies are available for linting
+        MIX_ENV=dev mix deps.get
+        MIX_ENV=dev mix nerves.system.lint nerves_defconfig
     - name: Create artifacts
       shell: bash
+      working-directory: ${{ inputs.working-directory }}
       run: |
         mkdir -p deploy/system/artifacts
         cp ./CHANGELOG.md deploy/system/CHANGELOG.md
@@ -66,10 +81,10 @@ runs:
       if: inputs.store-artifacts == 'true'
       uses: actions/upload-artifact@v4
       with:
-        path: deploy/system/artifacts
+        path: ${{ inputs.working-directory }}/deploy/system/artifacts
         name: system
     - name: Save deploy cache
       uses: actions/cache/save@v4
       with:
-        path: deploy/system
+        path: ${{ inputs.working-directory }}/deploy/system
         key: deploy/system-${{ github.sha }}-${{ github.ref_name }}

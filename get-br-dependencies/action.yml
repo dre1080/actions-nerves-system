@@ -28,7 +28,7 @@ inputs:
   download-site-url:
     required: false # required if `push-to-download-site` is true
     description: public URL for downloading packages uploaded to the aws s3 bucket
-    default: 'http://dl.nerves-project.org'
+    default: "http://dl.nerves-project.org"
   download-site-bucket-uri:
     required: false # required if `push-to-download-site` is true
     description: aws s3 bucket uri for uploading buildroot packages
@@ -36,6 +36,10 @@ inputs:
     required: false # required if `push-to-download-site` is true
   aws-region:
     required: false # required if `push-to-download-site` is true
+  working-directory:
+    required: false
+    description: Working directory for the mix project
+    default: "."
 
 runs:
   using: composite
@@ -45,15 +49,20 @@ runs:
         otp-version: ${{ inputs.otp-version }}
         elixir-version: ${{ inputs.elixir-version }}
         nerves-bootstrap-version: ${{ inputs.nerves-bootstrap-version }}
+        working-directory: ${{ inputs.working-directory }}
     - uses: ./.actions/.internal/restore-nerves-downloads
     - uses: ./.actions/.internal/mix-deps-get
+      with:
+        cd: ${{ inputs.working-directory }}
     - name: Validate Hex package
       if: inputs.hex-validate == 'true'
       shell: bash
+      working-directory: ${{ inputs.working-directory }}
       run: mix hex.build
     - name: Get Buildroot dependencies
       if: inputs.push-to-download-site != 'true'
       shell: bash
+      working-directory: ${{ inputs.working-directory }}
       run: |
         ./deps/nerves_system_br/create-build.sh nerves_defconfig ~/temp_nerves_system
         cd ~/temp_nerves_system
@@ -66,6 +75,7 @@ runs:
         download-site-bucket-uri: ${{ inputs.download-site-bucket-uri }}
         aws-role: ${{ inputs.aws-role }}
         aws-region: ${{ inputs.aws-region }}
+        working-directory: ${{ inputs.working-directory }}
     - name: Save Nerves downloads
       if: inputs.save-dl-cache == 'true'
       uses: actions/cache/save@v4

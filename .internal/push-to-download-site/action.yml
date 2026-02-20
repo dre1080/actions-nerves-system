@@ -10,12 +10,17 @@ inputs:
     required: true
   aws-region:
     required: true
+  working-directory:
+    required: false
+    description: Working directory for the mix project
+    default: "."
 
 runs:
   using: composite
   steps:
     - name: Get Buildroot dependencies
       shell: bash
+      working-directory: ${{ inputs.working-directory }}
       run: |
         ./deps/nerves_system_br/create-build.sh nerves_defconfig ~/temp_nerves_system
         cd ~/temp_nerves_system

@@ -8,6 +8,10 @@ inputs:
     required: true
   nerves-bootstrap-version:
     required: true
+  working-directory:
+    required: false
+    description: Working directory for the mix project
+    default: "."
 
 runs:
   using: composite
@@ -19,5 +23,6 @@ runs:
         elixir-version: ${{ inputs.elixir-version }}
     - name: Install nerves_bootstrap
       shell: bash
+      working-directory: ${{ inputs.working-directory }}
       run: |
         mix archive.install --force hex nerves_bootstrap ${{ inputs.nerves-bootstrap-version }}
