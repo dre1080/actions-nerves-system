@@ -76,7 +76,7 @@ runs:
       run: |
         mkdir -p deploy/system/artifacts
         cp ./CHANGELOG.md deploy/system/CHANGELOG.md
-        mix nerves.artifact ${GITHUB_REPOSITORY#*/} --path deploy/system/artifacts
+        mix nerves.artifact --path deploy/system/artifacts
     - name: Store artifacts
       if: inputs.store-artifacts == 'true'
       uses: actions/upload-artifact@v4
